@@ -1,0 +1,142 @@
+{
+  "name": "3d-model-viewer-stl",
+  "version": "1.2.0",
+  "description": "Professional 3D Model Viewer with STL to GLB Conversion - Built with Electron and Three.js",
+  "main": "src/main.js",
+  "homepage": "https://github.com/yourname/3d-model-viewer",
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "keywords": ["electron", "3d", "viewer", "threejs", "glb", "stl", "blender", "converter", "desktop"],
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux",
+    "dist": "npm run build",
+    "dist-all": "npm run build -- --win --mac --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run dist"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.6.4",
+    "rimraf": "^5.0.5"
+  },
+  "build": {
+    "appId": "com.yourcompany.3dmodelviewer",
+    "productName": "3D Model Viewer Pro",
+    "copyright": "Copyright © 2024 Your Company Name",
+    "buildVersion": "1.2.0",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "models/**/*",
+      "assets/**/*",
+      "scripts/**/*",
+      "temp/",
+      "resources/**/*",
+      "!node_modules",
+      "!**/.DS_Store",
+      "!**/.git*",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.eslintrc,eslintrc,eslintrc.js,.eslintrc.json,.eslintrc.yml}",
+      "!**/{.stylelintrc,stylelintrc,stylelintrc.js,.stylelintrc.json,.stylelintrc.yml}",
+      "!**/package-lock.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/",
+        "to": "resources/",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "scripts/",
+        "to": "scripts/",
+        "filter": ["**/*"]
+      }
+    ],
+    "asarUnpack": ["scripts/**/*"],
+    "win": {
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "publish": null,
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      "icon": "assets/icon.ico",
+      "category": "public.app-category.graphics-design",
+      "artifactName": "${productName}-${version}-macOS.${ext}"
+    },
+    "linux": {
+      "target": {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      "icon": "assets/icon.ico",
+      "category": "Graphics",
+      "artifactName": "${productName}-${version}-Linux.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "3D Model Viewer Pro",  
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "menuCategory": "Graphics & Design"
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "artifactName": "${productName}-${version}-macOS.${ext}",
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 380,
+          "y": 280,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 110,
+          "y": 280,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 400
+      }
+    },
+    "appImage": {
+      "artifactName": "${productName}-${version}-Linux.${ext}"
+    },
+    "compression": "normal",
+    "forceCodeSigning": false
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

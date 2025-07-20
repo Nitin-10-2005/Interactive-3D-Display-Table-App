@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Display Table App</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Keep all existing CSS variables the same */
+            --primary-bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d30 50%, #1e1e1e 75%, #000000 100%);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff6b6b;
+            --accent-tertiary: #4ecdc4;
+            --accent-quaternary: #ffd93d;
+            --accent-success: #6bcf7f;
+            --accent-warning: #ffb347;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.75);
+            --text-muted: rgba(255, 255, 255, 0.5);
+            --shadow-primary: 0 8px 32px rgba(0, 212, 255, 0.25);
+            --shadow-secondary: 0 8px 32px rgba(255, 107, 107, 0.25);
+            --shadow-glass: 0 12px 40px rgba(0, 0, 0, 0.4);
+            --border-radius: 16px;
+            --border-radius-lg: 24px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: var(--primary-bg);
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Premium Loading Screen - Simplified */
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-lg);
+            padding: 48px 40px;
+            box-shadow: var(--shadow-glass);
+            min-width: 420px;
+        }
+
+        #loading::before {
+            content: '⚡';
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        #loading h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Enhanced STL Conversion Indicator - Simplified */
+        #stl-conversion-indicator {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(255, 179, 71, 0.25);
+            display: none;
+            min-width: 400px;
+        }
+
+        #stl-conversion-indicator::before {
+            content: '🔄';
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+            animation: spin 2s linear infinite;
+        }
+
+        #stl-conversion-indicator h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--accent-warning);
+        }
+
+        #stl-status-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Premium Error Display */
+        #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: var(--border-radius-lg);
+            padding: 48px 40px;
+            box-shadow: var(--shadow-secondary);
+            max-width: 500px;
+        }
+
+        #error::before {
+            content: '⚠️';
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        #error h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent-secondary);
+        }
+
+        /* Premium Header Bar */
+        #header-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 72px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        #logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+
+        #logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Premium Buttons */
+        .premium-button {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 12px 20px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .premium-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .premium-button:hover::before {
+            left: 100%;
+        }
+
+        .premium-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .premium-button.primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            box-shadow: var(--shadow-primary);
+        }
+
+        .premium-button.primary:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-icon {
+            font-size: 16px;
+        }
+
+        /* Premium Model List */
+        #model-list {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            min-width: 300px;
+            max-height: 350px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: var(--shadow-glass);
+            z-index: 1000;
+        }
+
+        .model-item {
+            padding: 16px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .model-item:last-child {
+            border-bottom: none;
+        }
+
+        .model-format {
+            font-size: 10px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .model-format.stl {
+            background: linear-gradient(135deg, var(--accent-warning), #ff9500);
+        }
+
+        /* Premium Control Panel */
+        #control-panel {
+            position: absolute;
+            right: 24px;
+            top: 45%; /* Changed from 50% to 45% to move it higher */
+            transform: translateY(-50%);
+            z-index: 150; /* Increased z-index */
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 120px; /* Increased from 80px to 120px for more clearance */
+        }
+
+        .control-group {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 16px 12px;
+            box-shadow: var(--shadow-glass);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-button-round {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-button-round::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .control-button-round:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .control-button-round:hover {
+            transform: scale(1.1);
+        }
+
+        .control-button-round:active {
+            transform: scale(0.95);
+        }
+
+        .zoom-in {
+            background: linear-gradient(135deg, var(--accent-primary), #0099cc);
+            color: white;
+            box-shadow: var(--shadow-primary);
+        }
+
+        .zoom-out {
+            background: linear-gradient(135deg, var(--accent-tertiary), #3aa39a);
+            color: white;
+            box-shadow: 0 8px 32px rgba(78, 205, 196, 0.25);
+        }
+
+        .reset-view {
+            background: linear-gradient(135deg, var(--accent-quaternary), #ffcc02);
+            color: #1a1a1a;
+            box-shadow: 0 8px 32px rgba(255, 217, 61, 0.25);
+        }
+
+        .auto-rotate {
+            background: linear-gradient(135deg, var(--accent-secondary), #ff4757);
+            color: white;
+            box-shadow: var(--shadow-secondary);
+        }
+
+        .auto-rotate.active {
+            background: linear-gradient(135deg, var(--accent-success), #27ae60);
+            box-shadow: 0 8px 32px rgba(107, 207, 127, 0.25);
+        }
+
+        .fullscreen {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            box-shadow: 0 8px 32px rgba(155, 89, 182, 0.25);
+        }
+
+        /* Premium Status Bar */
+        #status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--glass-border);
+            z-index: 90; /* Lower z-index than control panel */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+
+        #status-info {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-icon {
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Large file indicator */
+        #large-file-indicator {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(255, 179, 71, 0.25);
+            display: none;
+        }
+
+        #large-file-indicator::before {
+            content: '⚡';
+            font-size: 32px;
+            display: block;
+            margin-bottom: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        #large-file-indicator h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent-warning);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-tertiary);
+        }
+
+        /* Fullscreen styles */
+        :-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+        }
+
+        :-moz-full-screen {
+            width: 100%;
+            height: 100%;
+        }
+
+        :fullscreen {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Premium Animations */
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromBottom {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #header-bar {
+            animation: slideInFromTop 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #control-panel {
+            animation: slideInFromRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+        }
+
+        #status-bar {
+            animation: slideInFromBottom 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #header-bar {
+                padding: 0 16px;
+                height: 64px;
+            }
+            
+            #logo-text {
+                display: none;
+            }
+            
+            #control-panel {
+                right: 16px;
+            }
+            
+            .control-button-round {
+                width: 48px;
+                height: 48px;
+                font-size: 18px;
+            }
+            
+            #status-bar {
+                padding: 0 16px;
+                height: 48px;
+            }
+        }
+
+        /* Premium Tooltips */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Welcome Screen */
+        #welcome-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-lg);
+            padding: 60px 50px;
+            box-shadow: var(--shadow-glass);
+            min-width: 500px;
+            display: none;
+        }
+
+        #welcome-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        #welcome-icon {
+            font-size: 72px;
+            margin-bottom: 8px;
+            animation: pulse 3s infinite;
+        }
+
+        #welcome-screen h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #welcome-screen p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        #welcome-features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 18px;
+        }
+
+        .welcome-button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 16px 32px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-primary);
+            margin-top: 8px;
+        }
+
+        .welcome-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.4);
+        }
+
+        .welcome-button .btn-icon {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <!-- Premium Header Bar -->
+    <div id="header-bar">
+        <div id="logo">
+            <div id="logo-icon">🎯</div>
+            <div id="logo-text">Interactive 3D Display Table App</div>
+        </div>
+        <div id="header-controls">
+            <button class="premium-button" onclick="openFilePicker()">
+                <span class="btn-icon">📁</span> Open Model
+            </button>
+            <div style="position: relative;">
+                <button class="premium-button primary" onclick="toggleSampleModels()">
+                    <span class="btn-icon">🎨</span> Sample Models
+                </button>
+                <div id="model-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Loading Screen - Simplified -->
+    <div id="loading">
+        <h2>Loading 3D Model</h2>
+    </div>
+
+    <!-- Enhanced STL Conversion Indicator - Simplified -->
+    <div id="stl-conversion-indicator">
+        <h3>Converting STL to GLB</h3>
+        <div id="stl-status-text">Initializing conversion...</div>
+    </div>
+
+    <!-- Large File Indicator -->
+    <div id="large-file-indicator">
+        <h3>Processing Large Model</h3>
+        <p>Optimizing for premium performance...</p>
+    </div>
+
+    <!-- Premium Error Display -->
+    <div id="error">
+        <h3>Error Loading Model</h3>
+        <p id="error-message"></p>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <div id="welcome-content">
+            <div id="welcome-icon">🎯</div>
+            <h2>Welcome to Interactive 3D Display Table Application</h2>
+            <p>Your premium 3D model viewer with STL conversion support</p>
+            <div id="welcome-features">
+                <div class="feature-item">
+                    <span class="feature-icon">📁</span>
+                    <span>Load GLB, GLTF & STL files</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔄</span>
+                    <span>Automatic STL to GLB conversion</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🚀</span>
+                    <span>GPU accelerated rendering</span>
+                </div>
+            </div>
+            <button class="welcome-button" onclick="openFilePicker()">
+                <span class="btn-icon">📁</span> Load Your First Model
+            </button>
+        </div>
+    </div>
+
+    <!-- Premium Control Panel -->
+    <div id="control-panel">
+        <div class="control-group">
+            <button class="control-button-round zoom-in tooltip" onclick="zoomIn()" data-tooltip="Zoom In">🔍</button>
+            <button class="control-button-round zoom-out tooltip" onclick="zoomOut()" data-tooltip="Zoom Out">🔎</button>
+        </div>
+        <div class="control-group">
+            <button class="control-button-round reset-view tooltip" onclick="resetView()" data-tooltip="Reset View">🏠</button>
+            <button class="control-button-round auto-rotate tooltip" id="auto-rotate-btn" onclick="toggleAutoRotate()" data-tooltip="Auto Rotate">🔄</button>
+            <button class="control-button-round fullscreen tooltip" onclick="toggleFullscreen()" data-tooltip="Fullscreen">⛶</button>
+        </div>
+    </div>
+
+    <!-- Premium Status Bar -->
+    <div id="status-bar">
+        <div id="status-info">
+            <div class="status-item">
+                <div class="status-indicator"></div>
+                <span id="status-text">Initializing Interactive 3D Display Table App...</span>
+            </div>
+        </div>
+        <div class="status-item">
+            <span class="status-icon">🚀</span>
+            <span>GPU Accelerated</span>
+        </div>
+    </div>
+</div>
+
+<!-- Load Three.js files locally -->
+<script src="../assets/js/three.min.js"></script>
+<script src="../assets/js/GLTFLoader.js"></script>
+<script src="../assets/js/OrbitControls.js"></script>
+
+<script>
+    // Global variables
+    let viewer;
+    let scriptsLoaded = false;
+
+    function updateStatus(message) {
+        const statusEl = document.getElementById('status-text');
+        if (statusEl) {
+            statusEl.textContent = message;
+        }
+        console.log('Status:', message);
+    }
+
+    // Loading State Management
+    let currentLoadingState = 'none'; // 'none', 'general', 'stl-conversion', 'large-file'
+
+    function setLoadingState(state, data = {}) {
+        // Hide all loading indicators first
+        hideAllLoadingIndicators();
+        
+        currentLoadingState = state;
+        
+        switch(state) {
+            case 'stl-conversion':
+                document.getElementById('stl-conversion-indicator').style.display = 'block';
+                if (data.message) {
+                    updateStlProgress(data.message);
+                }
+                break;
+            case 'large-file':
+                document.getElementById('large-file-indicator').style.display = 'block';
+                break;
+            case 'general':
+                document.getElementById('loading').style.display = 'block';
+                break;
+            case 'none':
+            default:
+                // All indicators already hidden
+                break;
+        }
+    }
+
+    function hideAllLoadingIndicators() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('stl-conversion-indicator').style.display = 'none';
+        document.getElementById('large-file-indicator').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('welcome-screen').style.display = 'none';
+    }
+
+    // Replace the old functions with these new ones:
+    function showError(message) {
+        setLoadingState('none');
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error-message').textContent = message;
+        console.error('Error:', message);
+        
+        if (window.electronAPI) {
+            window.electronAPI.showError('Interactive 3D Display Table Application Loader Error', message);
+        }
+    }
+
+    function showLargeFileIndicator() {
+        if (currentLoadingState !== 'stl-conversion') {
+            setLoadingState('large-file');
+        }
+    }
+
+    function hideLargeFileIndicator() {
+        if (currentLoadingState === 'large-file') {
+            setLoadingState('general');
+        }
+    }
+
+    function showStlConversionIndicator() {
+        setLoadingState('stl-conversion', { message: 'Initializing conversion...' });
+    }
+
+    function hideStlConversionIndicator() {
+        if (currentLoadingState === 'stl-conversion') {
+            setLoadingState('general');
+        }
+    }
+
+    function updateStlProgress(message) {
+        if (currentLoadingState === 'stl-conversion') {
+            const statusText = document.getElementById('stl-status-text');
+            if (statusText) statusText.textContent = message;
+        }
+    }
+
+    // Add function to show welcome screen
+    function showWelcomeScreen() {
+        hideAllLoadingIndicators();
+        document.getElementById('welcome-screen').style.display = 'block';
+        updateStatus('Welcome - Load your first 3D model');
+    }
+
+    class Enhanced3DViewer {
+        constructor() {
+            this.scene = null;
+            this.camera = null;
+            this.renderer = null;
+            this.controls = null;
+            this.model = null;
+            this.container = document.getElementById('container');
+            this.loadingEl = document.getElementById('loading');
+            this.errorEl = document.getElementById('error');
+            this.autoRotateEnabled = false;
+
+            updateStatus('Initializing Interactive 3D Display Table App...');
+            this.init();
+            this.setupEventListeners();
+            this.setupElectronListeners();
+            this.showWelcomeOnStart();
+        }
+
+        init() {
+            updateStatus('Setting up premium 3D environment...');
+
+            // Scene setup with pitch black background
+            this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x000000); // Pitch black background
+
+            // Camera setup - match Android TV settings
+            this.camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                0.1,        // Match Android TV near plane
+                10000000    // Match Android TV far plane (10 million)
+            );
+
+            // Enhanced renderer setup for large models - match Android TV settings
+            this.renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                powerPreference: "high-performance",
+                precision: "mediump", // Match Android TV precision
+                preserveDrawingBuffer: false,
+                alpha: false
+            });
+            
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.renderer.shadowMap.enabled = false; // Match Android TV - disabled by default
+            this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+            this.renderer.frustumCulled = true; // Match Android TV
+            
+            // Enhanced performance settings - match Android TV
+            this.renderer.info.autoReset = false;
+            this.renderer.sortObjects = true;
+
+            this.container.appendChild(this.renderer.domElement);
+
+            this.setupLighting();
+            this.setupControls();
+            
+            this.animate();
+
+            updateStatus('Premium 3D environment ready');
+        }
+
+        setupLighting() {
+            // Enhanced lighting setup that makes models look better
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8); // Increased intensity
+            this.scene.add(ambientLight);
+
+            // Directional lights from multiple angles - enhanced lighting
+            const light1 = new THREE.DirectionalLight(0xffffff, 1.0); // Increased intensity
+            light1.position.set(1, 1, 1);
+            this.scene.add(light1);
+
+            const light2 = new THREE.DirectionalLight(0xffffff, 0.6);
+            light2.position.set(-1, -1, -1);
+            this.scene.add(light2);
+
+            const light3 = new THREE.DirectionalLight(0xffffff, 0.4);
+            light3.position.set(0, 1, -1);
+            this.scene.add(light3);
+
+            // Additional light for better model visibility
+            const light4 = new THREE.DirectionalLight(0xffffff, 0.3);
+            light4.position.set(0, -1, 1);
+            this.scene.add(light4);
+        }
+
+        setupControls() {
+            this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+            this.controls.enableDamping = true;
+            this.controls.dampingFactor = 0.05;
+            this.controls.screenSpacePanning = true;
+            this.controls.minDistance = 1;
+            this.controls.maxDistance = 1000;
+            this.controls.maxPolarAngle = Math.PI;
+
+            // Desktop controls configuration - keep original working setup
+            this.controls.mouseButtons = {
+                LEFT: THREE.MOUSE.ROTATE,
+                MIDDLE: THREE.MOUSE.DOLLY,
+                RIGHT: THREE.MOUSE.PAN
+            };
+
+            this.controls.enableRotate = true;
+            this.controls.enableZoom = true;
+            this.controls.enablePan = true;
+            this.controls.rotateSpeed = 1.0;
+            this.controls.zoomSpeed = 1.2;
+            this.controls.panSpeed = 0.8;
+
+            this.controls.autoRotate = false;
+            this.controls.autoRotateSpeed = 2.0;
+        }
+
+        setupEventListeners() {
+            window.addEventListener('resize', () => this.onWindowResize());
+            this.setupMouseEvents();
+            this.setupKeyboardEvents();
+        }
+
+        setupMouseEvents() {
+            let lastClick = 0;
+
+            // Double-click to reset view
+            this.renderer.domElement.addEventListener('dblclick', (event) => {
+                this.resetView();
+                event.preventDefault();
+            });
+
+            // Prevent context menu
+            this.renderer.domElement.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+        }
+
+        setupKeyboardEvents() {
+            document.addEventListener('keydown', (event) => {
+                switch(event.code) {
+                    case 'KeyR':
+                        if (event.ctrlKey) {
+                            this.resetView();
+                            event.preventDefault();
+                        }
+                        break;
+                    case 'KeyT':
+                        if (event.ctrlKey) {
+                            this.toggleAutoRotate();
+                            event.preventDefault();
+                        }
+                        break;
+                    case 'Equal':
+                    case 'NumpadAdd':
+                        if (event.ctrlKey) {
+                            this.zoomIn();
+                            event.preventDefault();
+                        }
+                        break;
+                    case 'Minus':
+                    case 'NumpadSubtract':
+                        if (event.ctrlKey) {
+                            this.zoomOut();
+                            event.preventDefault();
+                        }
+                        break;
+                    case 'F11':
+                        toggleFullscreen();
+                        event.preventDefault();
+                        break;
+                    case 'Escape':
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                            event.preventDefault();
+                        }
+                        break;
+                }
+            });
+        }
+
+        setupElectronListeners() {
+            if (window.electronAPI) {
+                // Listen for menu actions
+                window.electronAPI.onLoadModelFile((event, filePath) => {
+                    this.loadModelFromFile(filePath);
+                });
+
+                window.electronAPI.onLoadSampleModels((event, models) => {
+                    this.showModelList(models);
+                });
+
+                window.electronAPI.onResetView(() => {
+                    this.resetView();
+                });
+
+                window.electronAPI.onToggleAutoRotate(() => {
+                    this.toggleAutoRotate();
+                });
+
+                window.electronAPI.onZoomIn(() => {
+                    this.zoomIn();
+                });
+
+                window.electronAPI.onZoomOut(() => {
+                    this.zoomOut();
+                });
+            }
+        }
+
+        // Always show welcome screen on start - no auto-loading
+        async showWelcomeOnStart() {
+            updateStatus('Welcome - Load your first 3D model');
+            showWelcomeScreen();
+        }
+
+        async loadSampleModel(filename) {
+            try {
+                const modelPath = await window.electronAPI.getModelPath(filename);
+                this.loadModelFromFile(modelPath);
+            } catch (error) {
+                this.showError('Error loading sample model: ' + error.message);
+            }
+        }
+
+        async loadModelFromFile(filePath) {
+            try {
+                // Check if it's an STL file
+                const isStlFile = filePath.toLowerCase().endsWith('.stl');
+                
+                if (isStlFile) {
+                    updateStatus('STL file detected - Converting to GLB...');
+                    showStlConversionIndicator();
+                } else {
+                    // Get file stats first
+                    const stats = await window.electronAPI.getFileStats(filePath);
+                    updateStatus(`Preparing model: ${stats.sizeMB.toFixed(2)} MB`);
+                    
+                    // Show appropriate loading indicator
+                    if (stats.sizeMB > 50) {
+                        showLargeFileIndicator();
+                    } else {
+                        this.showLoading();
+                    }
+                }
+
+                // Use enhanced loading method (handles STL conversion internally)
+                const modelData = await window.electronAPI.prepareModelData(filePath);
+                
+                // Hide STL conversion indicator after successful conversion
+                if (isStlFile) {
+                    hideStlConversionIndicator();
+                    updateStatus('STL converted successfully - Loading GLB...');
+                }
+                
+                if (modelData.type === "file-url") {
+                    // Large file - load directly from file system
+                    updateStatus(`Loading large model (${modelData.sizeMB.toFixed(2)} MB)...`);
+                    this.loadModelFromUrl(modelData.data);
+                } else if (modelData.type === "stream-buffer") {
+                    // Medium file - use streaming approach
+                    updateStatus(`Streaming model (${modelData.sizeMB.toFixed(2)} MB)...`);
+                    this.loadModelFromUrl('file://' + modelData.data.replace(/\\/g, '/'));
+                } else if (modelData.type === "buffer") {
+                    // Small file - load from buffer
+                    updateStatus(`Loading model from buffer (${modelData.sizeMB.toFixed(2)} MB)...`);
+                    const uint8Array = new Uint8Array(modelData.data);
+                    this.loadModelFromArrayBuffer(uint8Array.buffer);
+                }
+            } catch (error) {
+                console.error('Error loading model:', error);
+                showError('Failed to load model: ' + error.message);
+            }
+        }
+
+        loadModelFromUrl(filePath) {
+            console.log('Loading model from file path:', filePath);
+            updateStatus('Loading model from file system...');
+
+            const loader = new THREE.GLTFLoader();
+            
+            // Enhanced loading with better progress tracking and error handling
+            loader.load(
+                filePath,
+                (gltf) => {
+                    console.log('Model loaded successfully from file');
+                    updateStatus('Model loaded successfully');
+                    this.onModelLoaded(gltf);
+                    hideLargeFileIndicator();
+                    hideStlConversionIndicator();
+                },
+                (progress) => {
+                    if (progress.lengthComputable) {
+                        const percentComplete = (progress.loaded / progress.total) * 100;
+                        updateStatus(`Loading: ${percentComplete.toFixed(1)}%`);
+                    } else {
+                        // For large files without length info, show indeterminate progress
+                        updateStatus('Loading large model... Please wait');
+                    }
+                },
+                (error) => {
+                    console.error('Error loading model from file:', error);
+                    this.showError('Failed to load model: ' + error.message);
+                    hideLargeFileIndicator();
+                    hideStlConversionIndicator();
+                }
+            );
+        }
+
+        loadModelFromArrayBuffer(arrayBuffer) {
+            console.log('Loading model from ArrayBuffer, size:', arrayBuffer.byteLength);
+            updateStatus('Parsing 3D model...');
+
+            const loader = new THREE.GLTFLoader();
+
+            const onProgress = (progress) => {
+                if (progress.lengthComputable) {
+                    const percentComplete = (progress.loaded / progress.total) * 100;
+                    updateStatus(`Parsing: ${percentComplete.toFixed(1)}%`);
+                }
+            };
+
+            const onLoad = (gltf) => {
+                console.log('Model parsed successfully from buffer');
+                updateStatus('Model loaded successfully');
+                this.onModelLoaded(gltf);
+                hideLargeFileIndicator();
+                hideStlConversionIndicator();
+            };
+
+            const onError = (error) => {
+                console.error('GLTFLoader parse error:', error);
+                this.showError('Failed to parse 3D model. Please check if the file is a valid .glb file.');
+                hideLargeFileIndicator();
+                hideStlConversionIndicator();
+            };
+
+            try {
+                loader.parse(arrayBuffer, '', onLoad, onError);
+            } catch (error) {
+                console.error('Error calling loader.parse:', error);
+                this.showError('Error parsing model: ' + error.message);
+                hideLargeFileIndicator();
+                hideStlConversionIndicator();
+            }
+        }
+
+        onModelLoaded(gltf) {
+            if (this.model) {
+                this.scene.remove(this.model);
+                this.disposeModel(this.model);
+            }
+
+            this.model = gltf.scene;
+            this.optimizeModel(this.model);
+            this.scene.add(this.model);
+            this.fitCameraToModel();
+            
+            // Hide all loading indicators
+            setLoadingState('none');
+            this.hideWelcomeScreen();
+
+            updateStatus('Model ready - Premium quality rendering');
+        }
+
+        optimizeModel(model) {
+            let meshCount = 0;
+            let triangleCount = 0;
+            
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    meshCount++;
+                    child.frustumCulled = true;
+
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => this.optimizeMaterial(mat));
+                        } else {
+                            this.optimizeMaterial(child.material);
+                        }
+                    }
+
+                    if (child.geometry) {
+                        // Count triangles for performance monitoring
+                        if (child.geometry.index) {
+                            triangleCount += child.geometry.index.count / 3;
+                        } else {
+                            triangleCount += child.geometry.attributes.position.count / 3;
+                        }
+                        
+                        // Optimize geometry for large models
+                        if (triangleCount > 100000) { // For models with >100k triangles
+                            child.geometry.computeBoundingBox();
+                            child.geometry.computeBoundingSphere();
+                            
+                            // Enable vertex buffer optimization
+                            if (child.geometry.attributes.position) {
+                                child.geometry.attributes.position.needsUpdate = false;
+                            }
+                        }
+                    }
+                }
+            });
+
+            console.log(`Model stats: ${meshCount} meshes, ~${Math.round(triangleCount)} triangles`);
+            updateStatus(`Model loaded: ${meshCount} meshes, ~${Math.round(triangleCount/1000)}K triangles`);
+        }
+
+        optimizeMaterial(material) {
+            // Enhanced material optimization for better visual quality
+            material.transparent = false;
+            material.alphaTest = 0;
+
+            if (material.isMeshStandardMaterial) {
+                material.roughness = 0.7;
+                material.metalness = 0.1;
+            }
+        }
+
+        fitCameraToModel() {
+            const box = new THREE.Box3().setFromObject(this.model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            // Calculate bounding sphere radius for proper distance calculation
+            const boundingSphere = new THREE.Sphere();
+            box.getBoundingSphere(boundingSphere);
+            const radius = boundingSphere.radius;
+
+            // Use field of view to calculate proper distance - like Android TV
+            const fov = this.camera.fov * (Math.PI / 180); // Convert to radians
+            const distance = radius / Math.sin(fov / 2) * 1.5; // 1.5x for comfortable viewing
+
+            // Position camera at a good angle
+            this.camera.position.copy(center);
+            this.camera.position.x += distance * 0.8;
+            this.camera.position.y += distance * 0.6;
+            this.camera.position.z += distance * 0.8;
+
+            this.camera.lookAt(center);
+
+            // Set control limits based on bounding sphere
+            this.controls.target.copy(center);
+            this.controls.minDistance = radius * 0.1;
+            this.controls.maxDistance = radius * 10;
+
+            // Adjust movement speeds based on model size
+            const maxDim = Math.max(size.x, size.y, size.z);
+            this.controls.rotateSpeed = Math.max(0.5, Math.min(1.0, 10 / Math.max(maxDim, 10)));
+            this.controls.zoomSpeed = Math.max(0.8, Math.min(1.2, 5 / Math.max(maxDim, 5)));
+            this.controls.panSpeed = Math.max(0.5, Math.min(0.8, 5 / Math.max(maxDim, 5)));
+
+            this.controls.update();
+            
+            console.log(`Camera fitted - radius: ${radius.toFixed(2)}, distance: ${distance.toFixed(2)}`);
+        }
+
+        resetView() {
+            if (this.model) {
+                this.fitCameraToModel();
+                updateStatus('View reset to optimal position');
+            }
+        }
+
+        zoomIn() {
+            // Match Android TV zoom behavior exactly
+            const direction = new THREE.Vector3();
+            this.camera.getWorldDirection(direction);
+            const distance = this.camera.position.distanceTo(this.controls.target);
+            const newDistance = distance * 0.8; // 20% closer
+
+            if (newDistance > this.controls.minDistance) {
+                this.camera.position.addScaledVector(direction, distance - newDistance);
+                this.controls.update();
+                updateStatus('Zoomed in');
+            }
+        }
+
+        zoomOut() {
+            // Match Android TV zoom behavior exactly  
+            const direction = new THREE.Vector3();
+            this.camera.getWorldDirection(direction);
+            const distance = this.camera.position.distanceTo(this.controls.target);
+            const newDistance = distance * 1.25; // 25% further
+
+            if (newDistance < this.controls.maxDistance) {
+                this.camera.position.addScaledVector(direction, distance - newDistance);
+                this.controls.update();
+                updateStatus('Zoomed out');
+            }
+        }
+
+        toggleAutoRotate() {
+            this.autoRotateEnabled = !this.autoRotateEnabled;
+            this.controls.autoRotate = this.autoRotateEnabled;
+
+            const button = document.getElementById('auto-rotate-btn');
+            if (this.autoRotateEnabled) {
+                button.classList.add('active');
+                updateStatus('Auto-rotate enabled');
+            } else {
+                button.classList.remove('active');
+                updateStatus('Auto-rotate disabled');
+            }
+        }
+
+        disposeModel(model) {
+            model.traverse((child) => {
+                if (child.geometry) {
+                    child.geometry.dispose();
+                }
+                if (child.material) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(mat => mat.dispose());
+                    } else {
+                        child.material.dispose();
+                    }
+                }
+            });
+        }
+
+        showLoading() {
+            if (currentLoadingState === 'none' || currentLoadingState === 'general') {
+                setLoadingState('general');
+            }
+        }
+
+        hideLoading() {
+            if (currentLoadingState === 'general') {
+                setLoadingState('none');
+            }
+        }
+
+        showError(message) {
+            showError(message); // This will call the global showError function
+        }
+
+        hideWelcomeScreen() {
+            document.getElementById('welcome-screen').style.display = 'none';
+        }
+
+        onWindowResize() {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+
+            if (this.controls) {
+                this.controls.update();
+            }
+
+            // Enhanced rendering with performance monitoring
+            this.renderer.render(this.scene, this.camera);
+            
+            // Reset render info periodically for memory management
+            if (this.renderer.info.render.frame % 1000 === 0) {
+                this.renderer.info.reset();
+            }
+        }
+
+        showModelList(models) {
+            const modelList = document.getElementById('model-list');
+            modelList.innerHTML = '';
+
+            models.forEach(model => {
+                const item = document.createElement('div');
+                item.className = 'model-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = model;
+                
+                const formatSpan = document.createElement('span');
+                formatSpan.className = 'model-format';
+                const ext = model.split('.').pop().toUpperCase();
+                formatSpan.textContent = ext;
+                
+                // Add special styling for STL files
+                if (ext === 'STL') {
+                    formatSpan.classList.add('stl');
+                }
+                
+                item.appendChild(nameSpan);
+                item.appendChild(formatSpan);
+                
+                item.onclick = () => {
+                    this.loadSampleModel(model);
+                    modelList.style.display = 'none';
+                };
+                modelList.appendChild(item);
+            });
+
+            modelList.style.display = modelList.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => {
+                updateStatus('Entered fullscreen mode');
+            }).catch(err => {
+                updateStatus('Could not enter fullscreen: ' + err.message);
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                updateStatus('Exited fullscreen mode');
+            });
+        }
+    }
+
+    // Handle fullscreen change events
+    document.addEventListener('fullscreenchange', () => {
+        const btn = document.querySelector('.fullscreen');
+        if (document.fullscreenElement) {
+            btn.innerHTML = '⛶';
+            btn.setAttribute('data-tooltip', 'Exit Fullscreen');
+        } else {
+            btn.innerHTML = '⛶';
+            btn.setAttribute('data-tooltip', 'Fullscreen');
+        }
+        
+        // Resize renderer when entering/exiting fullscreen
+        if (viewer) {
+            viewer.onWindowResize();
+        }
+    });
+
+    // Global functions for UI interaction
+    async function openFilePicker() {
+        if (window.electronAPI) {
+            try {
+              const filePath = await window.electronAPI.openFileDialog();
+              if (filePath) {
+                updateStatus('Loading selected model...');
+                if (viewer) {
+                  viewer.loadModelFromFile(filePath);
+                }
+              }
+            } catch (error) {
+              updateStatus('Error opening file dialog: ' + error.message);
+            }
+          } else {
+            updateStatus('File dialog not available');
+          }
+    }
+
+    async function toggleSampleModels() {
+        if (window.electronAPI) {
+            try {
+                const models = await window.electronAPI.getSampleModels();
+                if (models && models.length > 0) {
+                    viewer.showModelList(models);
+                } else {
+                    updateStatus('No sample models found in /models folder');
+                }
+            } catch (error) {
+                updateStatus('Error loading sample models');
+            }
+        }
+    }
+
+    function zoomIn() {
+        if (viewer) {
+            viewer.zoomIn();
+        }
+    }
+
+    function zoomOut() {
+        if (viewer) {
+            viewer.zoomOut();
+        }
+    }
+
+    function resetView() {
+        if (viewer) {
+            viewer.resetView();
+        }
+    }
+
+    function toggleAutoRotate() {
+        if (viewer) {
+            viewer.toggleAutoRotate();
+        }
+    }
+
+    // Initialize when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+        updateStatus('Initializing Interactive 3D Display Table App...');
+        
+        // Check if Three.js is loaded
+        if (typeof THREE !== 'undefined') {
+            viewer = new Enhanced3DViewer();
+        } else {
+            showError('Three.js failed to load. Please check the assets/js/ directory.');
+        }
+    });
+
+    // Enhanced cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (window.electronAPI) {
+            window.electronAPI.removeAllListeners('load-model-file');
+            window.electronAPI.removeAllListeners('load-sample-models');
+            window.electronAPI.removeAllListeners('reset-view');
+            window.electronAPI.removeAllListeners('toggle-auto-rotate');
+            window.electronAPI.removeAllListeners('zoom-in');
+            window.electronAPI.removeAllListeners('zoom-out');
+        }
+        
+        // Enhanced cleanup for large models
+        if (viewer && viewer.model) {
+            viewer.disposeModel(viewer.model);
+        }
+        if (viewer && viewer.renderer) {
+            viewer.renderer.dispose();
+        }
+    });
+
+    // Enhanced Three.js verification
+    if (typeof THREE === 'undefined') {
+        showError('Three.js failed to load from local files. Please ensure the files are in assets/js/');
+        updateStatus('Error: Three.js not found');
+    } else {
+        console.log('Interactive 3D Display Table Application Loader loaded successfully');
+        console.log('Three.js version:', THREE.REVISION);
+        updateStatus('Interactive 3D Display Table Application Loader ready - Now supports STL files!');
+    }
+
+    // Setup STL conversion progress listener
+    if (window.electronAPI) {
+        window.electronAPI.onStlConversionProgress((event, data) => {
+            updateStlProgress(data.message);
+            updateStatus(`STL Conversion: ${data.message}`);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Node modules - dependencies installed via npm
+node_modules/
+
+# Output folders - build artifacts
+dist/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode settings (optional)
+.vscode/
+
+# Temp files generated during conversion
+temp/
+*.tmp
+
+# Extras (Installers for Node.js, VSCode - not needed in repo)
+extras/
+
+# Bundled Blender (binary files too big for GitHub)
+resources/
+resources/blender/
+resources/blender*.zip
+resources/blender.exe
+
+# Exclude packaged apps
+*.exe
+*.dmg
+*.AppImage
+
+# Exclude macOS / Linux specific
+.idea/
+*.swp
