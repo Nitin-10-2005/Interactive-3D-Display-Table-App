@@ -1,45 +1,53 @@
-# 3D Model Viewer Pro - Offline Industrial Viewer
+# Interactive 3D Display Table App
 
-## Project Overview
-A professional offline 3D model viewer designed for large-scale industrial use. The application converts `.stl` files to `.glb` using Blender and renders them in Three.js within an Electron app. Fully offline and optimized for industrial touchscreen systems.
+An offline-first, high-performance 3D model viewer built with Electron and Three.js, designed for industrial applications. This desktop application provides a seamless solution for visualizing large-scale `.stl` models by leveraging a bundled instance of Blender for automatic, on-the-fly conversion to the web-optimized `.glb` format.
 
-## Key Features
-- Offline STL to GLB conversion (via Blender)
-- Handles large 270MB+ industrial models
-- Smooth rendering with Three.js
-- Touchscreen and mouse support
-- Preloaded sample models
-- File picker for custom models
-- Zoom, Pan, Rotate, Reset view
-- Offline executable with no internet requirement
+The application is optimized for performance on low-spec hardware, such as industrial touchscreen systems, and is fully functional without an internet connection, making it ideal for factory floors and other isolated environments.
 
-## Folder Structure
+### Key Features
 
-assets/ → Icons & UI assets
-dist/ → Final packaged app (excluded from repo)
-extras/ → Offline Node.js, VSCode installers (excluded)
-models/ → STL / GLB files for viewing
-node_modules/ → Installed via npm
-resources/ → Bundled Blender for STL to GLB (excluded)
-scripts/ → Python conversion scripts
-src/ → Application source (index.html, main.js, preload.js)
-temp/ → Temporary conversion files
-package.json → App configuration
+* **Offline STL to GLB Conversion:** Automatically converts `.stl` files to `.glb` using a bundled Blender instance and a custom Python script.
+* **Large Model Handling:** Capable of loading and rendering industrial models over 270MB with optimized memory handling.
+* **High-Performance Rendering:** Utilizes Three.js and GPU acceleration to achieve smooth frame rates (45-60 FPS) even on modest hardware.
+* **Intuitive Controls:** Full support for mouse and touchscreen controls, including zoom, pan, rotate, and view reset.
+* **Cross-Platform:** Built with Electron and can be packaged for Windows, macOS, and Linux.
+* **Standalone Operation:** The entire application, including the conversion pipeline, is designed to work completely offline.
 
+### Tech Stack
 
-## Setup
+* **Framework:** Electron.js
+* **3D Rendering:** Three.js
+* **3D Model Conversion:** Blender (via Python scripting)
+* **Frontend:** HTML, CSS, JavaScript
+* **Packaging:** Electron Builder
 
-npm install
+### Getting Started
+
+Follow these instructions to get a development environment running.
+
+**Prerequisites**
+
+* [Node.js](https://nodejs.org/) (v16.0.0 or later recommended)
+* [npm](https://www.npmjs.com/) (usually comes with Node.js)
+
+**Installation**
+
+1.  Clone the repository:
+    ```sh
+    git clone [https://github.com/your-username/interactive-3d-display-table-app.git](https://github.com/your-username/interactive-3d-display-table-app.git)
+    ```
+2.  Navigate to the project directory:
+    ```sh
+    cd interactive-3d-display-table-app
+    ```
+3.  Install the dependencies:
+    ```sh
+    npm install
+    ```
+
+**Running the Application**
+
+To start the application in development mode, run:
+
+```sh
 npm run start
-
-
-## Build for Windows
-
-npm run build-win
-
-
-## Note
-Blender is bundled offline in `resources/` but excluded from GitHub. Ensure this exists for STL conversion to work.
-
-## License
-MIT
