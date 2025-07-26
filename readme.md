@@ -36,7 +36,9 @@ This application uses a portable version of Blender 3.6 for .stl to .glb convers
 Download Blender 3.6: Go to the Blender 3.6 Release Page.
 
 Get the Portable Version: Download the .zip file for your operating system (Windows, macOS, or Linux).
+
 Unzip and Rename: Unzip the file. You will have a folder like blender-3.6.0-windows-x64. Rename this folder to just blender.
+
 Place in resources: Move the renamed blender folder into the resources directory at the root of this project.
 
 **Installation**
