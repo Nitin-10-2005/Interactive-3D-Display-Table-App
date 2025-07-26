@@ -72,9 +72,9 @@ Launch the application.
 
 5. Rotate: Left-click and drag / One-finger drag
 
-6.Zoom: Mouse wheel / Two-finger pinch
+6. Zoom: Mouse wheel / Two-finger pinch
 
-7.Pan: Right-click and drag / Two-finger drag
+7. Pan: Right-click and drag / Two-finger drag
 
 **Building for Production**
 
