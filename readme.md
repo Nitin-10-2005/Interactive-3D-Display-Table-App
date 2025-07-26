@@ -30,6 +30,15 @@ Follow these instructions to get a development environment running.
 * [Node.js](https://nodejs.org/) (v16.0.0 or later recommended)
 * [npm](https://www.npmjs.com/) (usually comes with Node.js)
 
+**Blender Dependency**
+
+This application uses a portable version of Blender 3.6 for .stl to .glb conversion. It does not need to be installed system-wide.
+Download Blender 3.6: Go to the Blender 3.6 Release Page.
+
+Get the Portable Version: Download the .zip file for your operating system (Windows, macOS, or Linux).
+Unzip and Rename: Unzip the file. You will have a folder like blender-3.6.0-windows-x64. Rename this folder to just blender.
+Place in resources: Move the renamed blender folder into the resources directory at the root of this project.
+
 **Installation**
 
 1.  Clone the repository:
