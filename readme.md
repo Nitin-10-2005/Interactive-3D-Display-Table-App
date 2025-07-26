@@ -62,19 +62,19 @@ How to Use
 
 Launch the application.
 
-Click "Open Model" to open a file picker and select a .stl, .glb, or .gltf file.
+1. Click "Open Model" to open a file picker and select a .stl, .glb, or .gltf file.
 
-Alternatively, click "Sample Models" to load one of the pre-packaged models.
+2. Alternatively, click "Sample Models" to load one of the pre-packaged models.
 
-If an .stl file is selected, a conversion process will start automatically. A status indicator will show the progress.
+3. If an .stl file is selected, a conversion process will start automatically. A status indicator will show the progress.
 
-Once loaded, interact with the model using your mouse or touchscreen:
+4. Once loaded, interact with the model using your mouse or touchscreen:
 
-Rotate: Left-click and drag / One-finger drag
+5. Rotate: Left-click and drag / One-finger drag
 
-Zoom: Mouse wheel / Two-finger pinch
+6.Zoom: Mouse wheel / Two-finger pinch
 
-Pan: Right-click and drag / Two-finger drag
+7.Pan: Right-click and drag / Two-finger drag
 
 **Building for Production**
 
